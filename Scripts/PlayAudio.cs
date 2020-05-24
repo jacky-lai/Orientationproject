@@ -7,6 +7,7 @@ public class PlayAudio : MonoBehaviour
     //public AudioSource preNarration;
     bool preNarrationPlayed = true;
     public static float timer;
+    float elapsedTime = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -18,13 +19,13 @@ public class PlayAudio : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        timer = Time.time;
+        elapsedTime += Time.deltaTime;
 
-        if (timer > 3.00f & preNarrationPlayed)
+        if (elapsedTime > 3.00f && preNarrationPlayed)
         {
             GetComponent<AudioSource>().Play();
             preNarrationPlayed = false;
-
+            elapsedTime = 0;
         }
     }
 

@@ -16,6 +16,8 @@ public class StartMenu : MonoBehaviour
         ////int index = Random.Range(1, 4);
         //int index = 1;
         //SceneManager.LoadScene(index);
-        LevelChanger.GetComponent<LevelChanger>().LoadNewScene();
+       
+        StartCoroutine(LevelChanger.GetComponent<LevelChanger>().CoroutineFadePreScene());
+
     }
 }

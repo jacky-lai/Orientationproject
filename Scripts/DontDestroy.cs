@@ -6,9 +6,9 @@ public class DontDestroy : MonoBehaviour
 {
   void Awake()
     {
-        GameObject[] objs = GameObject.FindGameObjectsWithTag("preAudio");
+        GameObject[] objs = GameObject.FindGameObjectsWithTag("scenes");
 
-        if(objs.Length > 3)
+        if(objs.Length > 1)
         {
             Destroy(this.gameObject);
         }

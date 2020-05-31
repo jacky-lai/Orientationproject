@@ -99,7 +99,7 @@ namespace Valve.VR.InteractionSystem
             Destroy(toEnableOrDisableHovering.GetComponent<IgnoreHovering>());
 
 
-            yield return new WaitForSeconds(4);
+            yield return new WaitForSeconds(8);
 
             whisperSource.Play();
 

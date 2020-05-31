@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 public class LevelChanger : MonoBehaviour
 {
     public Animator animator;
-    private int MAX = 3; // the number of scenes to be loaded
+    private float MAX = 4f; // the number of scenes to be loaded
     private List<int> scenes; // array holding all LevelChanger GOs
 
     int level;
@@ -33,12 +33,15 @@ public class LevelChanger : MonoBehaviour
 
     Scene activeScene;
 
+    void Awake()
+    {
+        scenes = new List<int>(Enumerable.Range(0, 4)); // This creates a list with values from 1 to MAX
+    }
+
     void Start()
     {
         // Initialize the list with levels
-        scenes = new List<int>(Enumerable.Range(0, MAX)); // This creates a list with values from 1 to MAX
-
-        objs = GameObject.FindGameObjectsWithTag("scenes"); // Every instance of LevelChanger objects
+       
         lastInteractable = GameObject.FindWithTag("lastInteractable"); // Last interactable object in scene
         lastAudio = lastInteractable.GetComponent<AudioSource>(); // Audio of last interactable
 
@@ -46,12 +49,6 @@ public class LevelChanger : MonoBehaviour
         preAudio = preAudioSource.GetComponent<AudioSource>(); // Audio of preAudioSource
 
         //makeActiveSceneUnavailable();
-
-        if (objs.Length > 1)
-        {
-            Destroy(this.gameObject);
-        }
-        DontDestroyOnLoad(this.gameObject);
 
     }
 
@@ -61,6 +58,8 @@ public class LevelChanger : MonoBehaviour
         preAudioSource = GameObject.FindWithTag("preAudio"); // GameObject holding the PreNarration
         preAudio = preAudioSource.GetComponent<AudioSource>(); // Audio of preAudioSource
 
+        lastInteractable = GameObject.FindWithTag("lastInteractable"); // Last interactable object in scene
+        lastAudio = lastInteractable.GetComponent<AudioSource>(); // Audio of last interactable
 
         makeActiveSceneUnavailable();
 
@@ -70,10 +69,16 @@ public class LevelChanger : MonoBehaviour
             LoadMainSceneAfterPreAudio();
         }
 
+        if (activeScene.buildIndex == 4 || activeScene.buildIndex == 5 || activeScene.buildIndex == 6)
+        {
+            LoadNewSceneAfterLastAudio();
+        }
+
         // Load random PreScene (for testing, should be replaced by LoadNewSceneAfterLastAudio())
         if (Input.GetKeyDown("space"))
         {
-            LoadNewScene();
+            //LoadNewScene();
+            StartCoroutine(CoroutineFadePreScene());
             lastAudioPlayed = false;
         }
         //LoadNewSceneAfterLastAudio();
@@ -83,6 +88,7 @@ public class LevelChanger : MonoBehaviour
     // Check if scene has been loaded and set boolean so they are only loaded once 
     public void makeActiveSceneUnavailable()
     {
+        Debug.Log("Active Scene: " + activeScene);
         activeScene = SceneManager.GetActiveScene();
         if (activeScene.buildIndex == 1 && scene_1)
         {
@@ -101,53 +107,88 @@ public class LevelChanger : MonoBehaviour
         }
     }
 
+
     // Check if Pre-Scene Narration has been played 
     // Then load main scene 
     public void LoadMainSceneAfterPreAudio()
     {
-        if(preAudio != null)
+        if (preAudio != null)
         {
             if (preAudio.isPlaying)
             {
                 preAudioPlayed = true;
-                //Debug.Log(preAudioPlayed);
             }
         }
 
         // When Pre-Scene narration has been played, load main scene (pre-scene index +3)
         if (!preAudio.isPlaying && preAudioPlayed == true)
         {
-            SceneManager.LoadScene(activeScene.buildIndex + 3);
             preAudioPlayed = false;
+            StartCoroutine(CoroutineFadeMainScene());
         }
     }
+
 
     // Check if last audio has been played. Then load load new scene via SceneChanger
     public void LoadNewSceneAfterLastAudio()
     {
-        //// Check if last narrated part has been played
-        //if (lastAudio[0].isPlaying)
-        //{
-        //    lastAudioPlayed = true;
-        //    //Debug.Log("LastAudio played");
+        if (lastAudio != null)
+        {
+            //// Check if last narrated part has been played
+            if (lastAudio.isPlaying)
+            {
+                lastAudioPlayed = true;
+            }
+        }
 
-        //}
+        if (!lastAudio.isPlaying && lastAudioPlayed == true)
+        {
+            lastAudioPlayed = false;
+            StartCoroutine(CoroutineFadePreScene());
+        }
+
+    }
+
+
+    public IEnumerator CoroutineFadePreScene()
+    {
+        animator.SetTrigger("FadeOut");
+
+        yield return new WaitForSeconds(3);
+
+        LoadNewScene();
+    }
+
+    public IEnumerator CoroutineFadeMainScene()
+    {
+        Scene currentActiveScene = SceneManager.GetActiveScene();
+
+        animator.SetTrigger("FadeOut");
+
+        yield return new WaitForSeconds(3);
+
+        SceneManager.LoadScene(currentActiveScene.buildIndex + 3);
+
+        animator.SetTrigger("FadeIn");
+
     }
 
     // Calculate random (scene) number and pass it to SceneChanger()
     public void LoadNewScene()
     {
-        if (MAX <= 0) // MAX = number of scenes to be loaded, if MAX <= 0 the end scene is loaded 
+
+        if (MAX <= 1) // MAX = number of scenes to be loaded, if MAX <= 0 the end scene is loaded 
         {
             //Application.Quit();
             Debug.Log("app quit");
             SceneManager.LoadScene(7);
+            animator.SetTrigger("FadeIn");
         }
 
         currentScene = Random.Range(1, 4); // else load a scene by random number between 1 and 3
-        animator.SetTrigger("FadeOut");
+        //animator.SetTrigger("FadeOut");
         SceneChanger();
-        //Debug.Log("The current Random is: " + currentScene);
+
     }
 
     // If scene has been already loaded, reload random scene via SceneChanger()
@@ -196,10 +237,13 @@ public class LevelChanger : MonoBehaviour
         }
         else
         {
-            ReloadScene();
-            animator.SetTrigger("FadeIn");
-            //Debug.Log("Had to reload new Scene!");
-            //Debug.Log(MAX);
+            if (MAX != 1)
+            {
+                ReloadScene();
+                animator.SetTrigger("FadeIn");
+                //Debug.Log("Had to reload new Scene!");
+                //Debug.Log(MAX);
+            }
         }
     }
 

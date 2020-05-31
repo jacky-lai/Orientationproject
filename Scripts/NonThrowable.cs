@@ -75,7 +75,6 @@ namespace Valve.VR.InteractionSystem
         private void OnHandHoverBegin()
         {
             onHandHoverBegin.Invoke();
-            Debug.Log("yaas");
             PlayNarration();
 
     }
